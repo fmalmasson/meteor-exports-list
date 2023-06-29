@@ -1,0 +1,83 @@
+<body>
+  {{> mainContainer }}
+</body>
+
+<!-- Customers List  -->
+<template name="mainContainer">
+  <div class="container">
+    <header>
+      <h1>
+        Customers List ({{ customersTotal }})
+      </h1>
+    </header>
+
+    <div class="customer-list-actions">
+      {{ >customerForm }}
+      <button id="btn-export-selection">
+        Export list
+      </button>
+    </div>
+    
+    <div class="table-scroll">
+      <table class="table-fix-head">
+        <thead>
+          <tr>
+            <th></th>
+            <th>
+              Firstname
+            </th>
+            <th>
+              Lastname
+            </th>
+            <th>
+              Email
+            </th>
+            <th>
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each customers}}
+            {{ >customer }}
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Exports List -->
+  <div class="container">
+    <header>
+      <h1>
+        Exports List ({{ exportsTotal }})
+      </h1>
+    </header>
+
+    <div class="table-scroll">
+      <table class="table-fix-head">
+        <thead>
+          <tr>
+            <th>
+              File name
+            </th>
+            <th>
+              Date
+            </th>
+            <th>
+              status
+            </th>
+            <th>
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ #each exports }}
+              {{ >export }}
+          {{ /each }}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>

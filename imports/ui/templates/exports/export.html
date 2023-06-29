@@ -1,0 +1,28 @@
+<template name="export">
+  <tr>
+    <td>
+      {{ fileName }}
+    </td>
+    <td>
+      {{ formatedDate(createdAt) }}
+    </td>
+    
+    <td>
+      {{ #if showExportStatus }}
+        {{ finalUrl }}
+      {{ else }}
+        <div class="lds-ring">
+          <span class="progress-display">{{ progress }}</span>
+          <!-- loader -->
+          <div></div><div></div><div></div><div></div>
+        </div>
+      {{ /if }}
+    </td>
+    <td>
+      <button id="delete-export">
+        Delete
+      </button>
+    </td>
+  </tr>
+
+</template>

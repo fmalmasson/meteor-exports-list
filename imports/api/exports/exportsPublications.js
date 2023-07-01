@@ -5,24 +5,20 @@ Meteor.publish('listExports', function publishExports() {
   return  ExportsCollection.find({}, { sort: { createdAt: -1 } });
 });
 
-Meteor.publish('exportStatusChanged', function () {
-  const publication = this;
+Meteor.publish('exportStatusChanged', function(exportId) {
+  const self = this;
 
-  // Observe the changes in the collection
-  const observer = ExportsCollection.find().observeChanges({
-    changed: function (id, fields) {
-      // Check if the "status" field has changed
-      if ('status' in fields) {
-        // Publish the updated document to the client
-        publication.changed('ExportsCollection', id, fields);
+  const observer = ExportsCollection.find({ _id: exportId, status: 100 }).observeChanges({
+    changed: function(id, fields) {
+      if (fields.hasOwnProperty('status')) {
+        self.changed('exports', id, { status: fields.status });
       }
     }
   });
 
-  // Stop observing when the subscription is stopped
-  publication.onStop(function () {
+  self.ready();
+
+  self.onStop(function() {
     observer.stop();
   });
-
-  publication.ready();
 });

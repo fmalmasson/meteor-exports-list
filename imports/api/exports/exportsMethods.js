@@ -2,12 +2,18 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { ExportsCollection } from '../../db/ExportsCollection';
 
+const urlList = [
+    'https://www.lempire.com/',
+    'https://www.lemlist.com/',
+    'https://www.lemverse.com/',
+    'https://www.lemstash.com/'
+];
+
+
 Meteor.methods({
-  'exports.insert'({ fileName, createdAt, status }) {
+  'exports.insert'() {
     ExportsCollection.insert({
-        fileName, 
-        createdAt, 
-        status,
+        status: 0,
         createdAt: new Date()
       }, Meteor.bindEnvironment((error, exportId) => {
         if(error) {
@@ -19,7 +25,6 @@ Meteor.methods({
       }))
   },
   'exports.remove'(exportId) {
-    console.log('exportId', exportId)
     check(exportId, String);
  
     ExportsCollection.remove(exportId);
@@ -27,7 +32,15 @@ Meteor.methods({
 });
 
 function processExport(exportId) {
-  Meteor.setTimeout(() => {
-    ExportsCollection.update(exportId, { $set: { status: "done" }});
-  }, 20000);
+  let progress = 0;
+  let progressInterval = Meteor.setInterval(() => {
+
+    ExportsCollection.update(exportId, { $inc: { status: 5 }});
+    progress += 5;
+
+    if(progress > 100) {
+      ExportsCollection.update(exportId, { $set: { status: urlList[Math.floor(Math.random()*urlList.length)] }});
+      clearInterval(progressInterval);
+    }
+  }, 1000);
 }

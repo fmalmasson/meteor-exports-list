@@ -1,8 +1,6 @@
 import { Template } from 'meteor/templating';
 import { ExportsCollection } from '../db/ExportsCollection';
 import { CustomersCollection } from '../db/CustomersCollection';
-import { ReactiveDict } from 'meteor/reactive-dict';
-import { ReactiveVar } from 'meteor/reactive-var';
 
 import 'toastr/build/toastr.min.css';
 import toastr from 'toastr';
@@ -17,44 +15,7 @@ const URL_LIST = "urlList";
 Template.mainContainer.onCreated(function mainContainerOnCreated() {
   Meteor.subscribe('listExports');
   Meteor.subscribe('listCustomers');
-  Meteor.subscribe('exportStatusChanged');
-
-  Tracker.autorun(() => {
-    ExportsCollection.find().observeChanges({
-      changed: function (id, fields) {
-        const updatedDocument = { _id: id, ...fields };
-        toastr.success(`Your export ${id} is ready`);
-      }
-    });
-  });
 });
-
-Template.export.onCreated(function exportOnCreated() {
-  this.state = new ReactiveDict();
-  this.state.set(URL_LIST, [
-    'https://www.lempire.com/',
-    'https://www.lemlist.com/',
-    'https://www.lemverse.com/',
-    'https://www.lemstash.com/'
-  ]);
-
-  this.exportProgress = new ReactiveVar(0);
-
-  // Pick a random url in URL_LIST
-  const urlArray = this.state.get(URL_LIST);
-  this.exportUrl = new ReactiveVar(urlArray[Math.floor(Math.random()*urlArray.length)]);
-
-  // update progress every second, add 5 %
-  this.autorun(() => {
-    setInterval(() => {
-      const currentProgress = this.exportProgress.get();
-      const updatedProgress = currentProgress + 5;
-      this.exportProgress.set(updatedProgress);
-    }, 1000);
-  });
-});
-
-
 
 Template.mainContainer.helpers({
   exports() {
@@ -71,6 +32,22 @@ Template.mainContainer.helpers({
   },
 });
 
+Template.export.onCreated(function exportOnCreated() {
+  const self = this;
+  const exportId = this.data._id;
+
+  self.autorun(() => {
+    const subscription = Meteor.subscribe('exportStatusChanged', exportId);
+
+    if (subscription.ready()) {
+      const exportData = ExportsCollection.findOne({ _id: exportId });
+      if (exportData && exportData.status === 100) {
+        toastr.success(`Your export ${exportId} is ready`);
+      }
+    }
+  });
+});
+
 Template.export.helpers({
   formatedDate(date) {
     return new Date(date).toLocaleString();
@@ -80,25 +57,22 @@ Template.export.helpers({
   },
   // when export is processed, show loader, when done, show url as status
   showExportStatus() {
-    return this.status !== 'in_progress';
+    return typeof this.status === 'string';
   },
   progress() {
-    const templateInstance = Template.instance();
-    return `${templateInstance.exportProgress.get()} %`;
+    if( typeof this.status === 'number')
+    return `${this.status} %`;
   },
-  finalUrl() {
-    const templateInstance = Template.instance();
-    return templateInstance.exportUrl.get();
+  alert() {
+    if (typeof this.status === 'string') {
+      toastr.success(`Your export ${this._id} is ready`);
+    }
   }
 })
 
 Template.mainContainer.events({
   "click #btn-export-selection"() {
-    Meteor.call('exports.insert', { 
-      fileName: 'test', 
-      createdAt: new Date(), 
-      status: 'in_progress'
-    });
+    Meteor.call('exports.insert');
   },
 
   "click #delete-customer"() {

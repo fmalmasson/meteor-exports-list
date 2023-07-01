@@ -3,9 +3,11 @@ import { check } from 'meteor/check';
 import { CustomersCollection } from '../../db/CustomersCollection';
 
 Meteor.methods({
-  'customers.insert'(infos) {
+  'customers.insert'({firstname, lastname, email}) {
     CustomersCollection.insert({
-        infos, 
+        firstname,
+        lastname,
+        email, 
         createdAt: new Date()
       })
   },
